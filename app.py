@@ -193,7 +193,7 @@ Example output:
             st.write("Debug 6: Request message structure:", messages[0]["content"][0]["type"])
             
             response = client.chat.completions.create(
-                model="gpt-4-vision-preview",
+                model="gpt-4-turbo",
                 messages=messages,
                 max_tokens=300
             )
