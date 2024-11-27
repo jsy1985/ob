@@ -49,7 +49,7 @@ def check_password():
     else:
         return True
 
-[이전 BiometryInterpreter 클래스 코드는 동일하게 유지...]
+
 
 def main():
     st.set_page_config(page_title="Ocular biometry", layout="wide")
