@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 환경변수에서 API 키 가져오기
-API_KEY = os.getenv('API_KEY')
+API_KEY = st.secrets["API_KEY"] if "API_KEY" in st.secrets else os.getenv("API_KEY")
 
 def check_password():
     """Returns `True` if the user had the correct password."""
