@@ -140,25 +140,15 @@ def update_params():
 def extract_parameters(image):
     with st.spinner('Extracting parameters from image...'):
         try:
-            # 디버그 출력 추가
-            st.write("Debug - Secrets available:", st.secrets)
-            st.write("Debug - API_KEY value:", API_KEY)
-            
             # API 키 확인
             if not API_KEY:
                 st.error("API key is not set")
                 return None
                 
-            # API 호출 전 디버깅
-            st.write("Debug: Starting API call")
-            
             client = OpenAI(api_key=API_KEY)
             buffered = io.BytesIO()
             image.save(buffered, format="JPEG")
             image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-            
-            # API 응답 전 디버깅
-            st.write("Debug: Making API request")
             
             response = client.chat.completions.create(
                 model="gpt-4-turbo",
@@ -167,38 +157,37 @@ def extract_parameters(image):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Please analyze this ocular biometry report..."""
+                            "text": """Please analyze this ocular biometry report. The image is divided into two halves: OD (right eye) on the left and OS (left eye) on the right.
+
+Extract ONLY these specific measurements:
+1. AL: Find number after 'AL:' followed by 'mm'
+2. ACD: Find number after 'ACD:' followed by 'mm'
+3. K1: Find number after 'K1:' followed by 'D'
+4. K2: Find number after 'K2:' followed by 'D'
+
+IMPORTANT:
+- Ignore any other measurements (TSE, TK1, TK2, etc.)
+- Extract numbers only, without units
+- Return values in exactly this order, separated by commas:
+OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2
+
+Example output format (with different numbers):
+23.26, 2.61, 43.47, 44.70, 23.16, 2.66, 44.12, 44.28"""
                         },
                         {
                             "type": "image_url",
                             "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}
                         }
                     ]
-                }],
-                max_tokens=300
+                }]
             )
             
-            # API 응답 후 디버깅
-            st.write("Debug: API response received")
-            st.write("Raw Response:", response)
-            
             raw_response = response.choices[0].message.content.strip()
-            st.write("Processed Response:", raw_response)
+            st.write("Raw GPT Response:", raw_response)
             
-            # 응답 파싱 로직
-            lines = raw_response.split('\n')
-            values = []
-            for line in lines:
-                if ':' in line:
-                    try:
-                        value = float(line.split(':')[1].strip())
-                        values.append(value)
-                    except:
-                        continue
-            
+            values = [float(x.strip()) for x in raw_response.split(',')]
             if len(values) != 8:
-                st.error(f"Expected 8 values, got {len(values)}")
-                return None
+                raise ValueError(f"Expected 8 values, got {len(values)}")
             
             formatted_params = {
                 'OD': {
@@ -215,6 +204,7 @@ def extract_parameters(image):
                 }
             }
             
+            # Calculate SE values
             formatted_params['OD']['K (SE)'] = calculate_se(values[2], values[3])
             formatted_params['OS']['K (SE)'] = calculate_se(values[6], values[7])
             
@@ -222,7 +212,7 @@ def extract_parameters(image):
             return formatted_params
             
         except Exception as e:
-            st.error(f"Error in extract_parameters: {str(e)}")
+            st.error(f"Error extracting parameters: {str(e)}")
             st.write("Error details:", e)
             return None
 
