@@ -163,7 +163,7 @@ def extract_parameters(image):
             st.write("Debug: Making API request")
             
             response = client.chat.completions.create(
-                model="gpt-4-vision-preview-0314",
+                model="gpt-4-turbo",
                 messages=[{
                     "role": "user",
                     "content": [
