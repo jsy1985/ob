@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
-# 환경변수에서 API 키 가져오기
-API_KEY = st.secrets.API_KEY if hasattr(st.secrets, "API_KEY") else os.getenv("API_KEY")
+# 환경변수에서 API 키 가져오기 부분 수정
+API_KEY = st.secrets.secrets.API_KEY if hasattr(st.secrets, "secrets") else os.getenv("API_KEY")
 
 
 
