@@ -12,9 +12,6 @@ load_dotenv()
 # 환경변수에서 API 키 가져오기
 API_KEY = st.secrets.API_KEY if hasattr(st.secrets, "API_KEY") else os.getenv("API_KEY")
 
-# API 키 확인을 위한 디버그 출력 추가
-st.write("Debug - Secrets available:", st.secrets)
-st.write("Debug - API_KEY value:", API_KEY)
 
 if not API_KEY:
     st.error("API key is not set")
@@ -148,6 +145,10 @@ def update_params():
 def extract_parameters(image):
     with st.spinner('Extracting parameters from image...'):
         try:
+            # 디버그 출력 추가
+            st.write("Debug - Secrets available:", st.secrets)
+            st.write("Debug - API_KEY value:", API_KEY)
+            
             # API 키 확인
             if not API_KEY:
                 st.error("API key is not set")
