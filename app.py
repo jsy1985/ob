@@ -13,9 +13,6 @@ load_dotenv()
 API_KEY = st.secrets.API_KEY if hasattr(st.secrets, "API_KEY") else os.getenv("API_KEY")
 
 
-if not API_KEY:
-    st.error("API key is not set")
-    return None
 
 class BiometryInterpreter:
     def __init__(self):
