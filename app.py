@@ -196,10 +196,20 @@ OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2"""
             st.write("Debug: API response received")
             st.write("Raw Response:", response)
             
-            raw_response = response.choices[0].message.content.strip()
+   raw_response = response.choices[0].message.content.strip()
             st.write("Processed Response:", raw_response)
             
-            values = [float(x.strip()) for x in raw_response.split(',')]
+            # 응답 파싱 로직 수정
+            lines = raw_response.split('\n')
+            values = []
+            for line in lines:
+                if ':' in line:
+                    try:
+                        value = float(line.split(':')[1].strip())
+                        values.append(value)
+                    except:
+                        continue
+            
             if len(values) != 8:
                 st.error(f"Expected 8 values, got {len(values)}")
                 return None
