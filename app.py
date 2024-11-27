@@ -138,35 +138,35 @@ def update_params():
         })
 
 def extract_parameters(image):
-   with st.spinner('Extracting parameters from image...'):
-       try:
-           st.write("Debug 1: Starting parameter extraction")
-           
-           # API 키 확인
-           if not API_KEY:
-               st.error("API key is not set")
-               return None
-           
-           st.write("Debug 2: API Key exists:", API_KEY[:10] + "...")
-           
-           client = OpenAI(api_key=API_KEY)
-           st.write("Debug 3: OpenAI client created")
-           
-           # 이미지 처리
-           buffered = io.BytesIO()
-           image.save(buffered, format="JPEG")
-           image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-           st.write("Debug 4: Image converted to base64")
-           
-           st.write("Debug 5: About to make API request")
-           
-           # API 요청 데이터 확인
-           messages = [{
-               "role": "user",
-               "content": [
-                   {
-                       "type": "text",
-                       "text": """Please analyze this ocular biometry report. The image is divided into two halves: OD (right eye) on the left and OS (left eye) on the right.
+    with st.spinner('Extracting parameters from image...'):
+        try:
+            st.write("Debug 1: Starting parameter extraction")
+            
+            # API 키 확인
+            if not API_KEY:
+                st.error("API key is not set")
+                return None
+            
+            st.write("Debug 2: API Key exists:", API_KEY[:10] + "...")
+            
+            client = OpenAI(api_key=API_KEY)
+            st.write("Debug 3: OpenAI client created")
+            
+            # 이미지 처리
+            buffered = io.BytesIO()
+            image.save(buffered, format="JPEG")
+            image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            st.write("Debug 4: Image converted to base64")
+            
+            st.write("Debug 5: About to make API request")
+            
+            # API 요청 데이터 확인
+            messages = [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": """Please analyze this ocular biometry report. The image is divided into two halves: OD (right eye) on the left and OS (left eye) on the right.
 
 Extract ONLY these specific measurements:
 1. AL: Find number after 'AL:' followed by 'mm'
@@ -183,58 +183,58 @@ OD_AL,OD_ACD,OD_K1,OD_K2,OS_AL,OS_ACD,OS_K1,OS_K2
 
 Example output:
 23.26,2.61,43.47,44.70,23.16,2.66,44.12,44.28"""
-                   },
-                   {
-                       "type": "image_url",
-                       "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}
-                   }
-               ]
-           }]
-           st.write("Debug 6: Request message structure:", messages[0]["content"][0]["type"])
-           
-           response = client.chat.completions.create(
-               model="gpt-4-turbo",
-               messages=messages,
-               max_tokens=300
-           )
-           
-           st.write("Debug 7: API request completed")
-           st.write("Raw Response:", response)
-           
-           raw_response = response.choices[0].message.content.strip()
-           st.write("Processed Response:", raw_response)
-           
-           # 응답 파싱 로직
-           values = [float(x.strip()) for x in raw_response.split(',')]
-           if len(values) != 8:
-               raise ValueError(f"Expected 8 values, got {len(values)}")
-           
-           formatted_params = {
-               'OD': {
-                   'AL': values[0],
-                   'ACD': values[1],
-                   'K1': values[2],
-                   'K2': values[3],
-               },
-               'OS': {
-                   'AL': values[4],
-                   'ACD': values[5],
-                   'K1': values[6],
-                   'K2': values[7],
-               }
-           }
-           
-           # Calculate SE values
-           formatted_params['OD']['K (SE)'] = calculate_se(values[2], values[3])
-           formatted_params['OS']['K (SE)'] = calculate_se(values[6], values[7])
-           
-           st.success("Parameters extracted successfully!")
-           return formatted_params
-           
-       except Exception as e:
-           st.error(f"Error extracting parameters: {str(e)}")
-           st.write("Error details:", e)
-           return None
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}
+                    }
+                ]
+            }]
+            st.write("Debug 6: Request message structure:", messages[0]["content"][0]["type"])
+            
+            response = client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=messages,
+                max_tokens=300
+            )
+            
+            st.write("Debug 7: API request completed")
+            st.write("Raw Response:", response)
+            
+            raw_response = response.choices[0].message.content.strip()
+            st.write("Processed Response:", raw_response)
+            
+            # 응답 파싱 로직
+            values = [float(x.strip()) for x in raw_response.split(',')]
+            if len(values) != 8:
+                raise ValueError(f"Expected 8 values, got {len(values)}")
+            
+            formatted_params = {
+                'OD': {
+                    'AL': values[0],
+                    'ACD': values[1],
+                    'K1': values[2],
+                    'K2': values[3],
+                },
+                'OS': {
+                    'AL': values[4],
+                    'ACD': values[5],
+                    'K1': values[6],
+                    'K2': values[7],
+                }
+            }
+            
+            # Calculate SE values
+            formatted_params['OD']['K (SE)'] = calculate_se(values[2], values[3])
+            formatted_params['OS']['K (SE)'] = calculate_se(values[6], values[7])
+            
+            st.success("Parameters extracted successfully!")
+            return formatted_params
+            
+        except Exception as e:
+            st.error(f"Error extracting parameters: {str(e)}")
+            st.write("Error details:", e)
+            return None
 
 def main():
     st.set_page_config(page_title="Ocular biometry", layout="wide")
