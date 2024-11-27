@@ -9,10 +9,8 @@ from dotenv import load_dotenv
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
-# 환경변수에서 API 키 가져오기 부분 수정
+# 환경변수에서 API 키 가져오기
 API_KEY = st.secrets.secrets.API_KEY if hasattr(st.secrets, "secrets") else os.getenv("API_KEY")
-
-
 
 class BiometryInterpreter:
     def __init__(self):
@@ -227,3 +225,48 @@ def extract_parameters(image):
             st.error(f"Error in extract_parameters: {str(e)}")
             st.write("Error details:", e)
             return None
+
+def main():
+    st.set_page_config(page_title="Ocular biometry", layout="wide")
+    st.title("Ocular biometry")
+
+    if check_password():  # 비밀번호 확인
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.text_input("파일 경로 표시", disabled=True)
+        with col2:
+            uploaded_file = st.file_uploader("File upload", type=['jpg', 'jpeg', 'png'])
+
+        if uploaded_file:
+            if st.button("Extract Parameters") or 'current_params' not in st.session_state:
+                image = Image.open(uploaded_file)
+                params = extract_parameters(image)
+                if params:
+                    st.session_state.current_params = params
+
+            if 'current_params' in st.session_state:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("**OD**")
+                    st.number_input("AL:", value=float(st.session_state.current_params['OD']['AL']), format="%.2f", key="od_al", on_change=update_params)
+                    st.number_input("ACD:", value=float(st.session_state.current_params['OD']['ACD']), format="%.2f", key="od_acd", on_change=update_params)
+                    st.number_input("K1:", value=float(st.session_state.current_params['OD']['K1']), format="%.2f", key="od_k1", on_change=update_params)
+                    st.number_input("K2:", value=float(st.session_state.current_params['OD']['K2']), format="%.2f", key="od_k2", on_change=update_params)
+                    st.write(f"K (SE): {calculate_se(st.session_state.current_params['OD']['K1'], st.session_state.current_params['OD']['K2']):.2f}")
+
+                with col2:
+                    st.markdown("**OS**")
+                    st.number_input("AL:", value=float(st.session_state.current_params['OS']['AL']), format="%.2f", key="os_al", on_change=update_params)
+                    st.number_input("ACD:", value=float(st.session_state.current_params['OS']['ACD']), format="%.2f", key="os_acd", on_change=update_params)
+                    st.number_input("K1:", value=float(st.session_state.current_params['OS']['K1']), format="%.2f", key="os_k1", on_change=update_params)
+                    st.number_input("K2:", value=float(st.session_state.current_params['OS']['K2']), format="%.2f", key="os_k2", on_change=update_params)
+                    st.write(f"K (SE): {calculate_se(st.session_state.current_params['OS']['K1'], st.session_state.current_params['OS']['K2']):.2f}")
+
+                if st.button("Analyze biometry"):
+                    interpreter = BiometryInterpreter()
+                    results = interpreter.analyze(st.session_state.current_params)
+                    st.write(results)
+
+if __name__ == "__main__":
+    main()
