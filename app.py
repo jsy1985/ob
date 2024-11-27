@@ -156,7 +156,6 @@ def extract_parameters(image):
                     "role": "user",
                     "content": [
                         {
-                            "type": "text",
                             "text": """Please analyze this ocular biometry report. The image is divided into two halves: OD (right eye) on the left and OS (left eye) on the right.
 
 Extract ONLY these specific measurements:
@@ -166,13 +165,14 @@ Extract ONLY these specific measurements:
 4. K2: Find number after 'K2:' followed by 'D'
 
 IMPORTANT:
-- Ignore any other measurements (TSE, TK1, TK2, etc.)
-- Extract numbers only, without units
-- Return values in exactly this order, separated by commas:
-OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2
+- Return ONLY these 8 numbers separated by commas
+- Do NOT include any explanatory text
+- Do NOT include units or labels
+- Use exactly this format:
+OD_AL,OD_ACD,OD_K1,OD_K2,OS_AL,OS_ACD,OS_K1,OS_K2
 
-Example output format (with different numbers):
-23.26, 2.61, 43.47, 44.70, 23.16, 2.66, 44.12, 44.28"""
+Example output:
+23.26,2.61,43.47,44.70,23.16,2.66,44.12,44.28"""
                         },
                         {
                             "type": "image_url",
