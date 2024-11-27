@@ -169,19 +169,7 @@ def extract_parameters(image):
                     "content": [
                         {
                             "type": "text",
-                            "text": """Please analyze this ocular biometry report. The image is divided into two halves: OD (right eye) on the left and OS (left eye) on the right.
-
-Extract ONLY these specific measurements:
-1. AL: Find number after 'AL:' followed by 'mm'
-2. ACD: Find number after 'ACD:' followed by 'mm'
-3. K1: Find number after 'K1:' followed by 'D'
-4. K2: Find number after 'K2:' followed by 'D'
-
-IMPORTANT:
-- Ignore any other measurements (TSE, TK1, TK2, etc.)
-- Extract numbers only, without units
-- Return values in exactly this order, separated by commas:
-OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2"""
+                            "text": """Please analyze this ocular biometry report..."""
                         },
                         {
                             "type": "image_url",
@@ -196,10 +184,10 @@ OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2"""
             st.write("Debug: API response received")
             st.write("Raw Response:", response)
             
-   raw_response = response.choices[0].message.content.strip()
+            raw_response = response.choices[0].message.content.strip()
             st.write("Processed Response:", raw_response)
             
-            # 응답 파싱 로직 수정
+            # 응답 파싱 로직
             lines = raw_response.split('\n')
             values = []
             for line in lines:
@@ -239,48 +227,3 @@ OD_AL, OD_ACD, OD_K1, OD_K2, OS_AL, OS_ACD, OS_K1, OS_K2"""
             st.error(f"Error in extract_parameters: {str(e)}")
             st.write("Error details:", e)
             return None
-
-def main():
-    st.set_page_config(page_title="Ocular biometry", layout="wide")
-    st.title("Ocular biometry")
-
-    if check_password():  # 비밀번호 확인
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.text_input("파일 경로 표시", disabled=True)
-        with col2:
-            uploaded_file = st.file_uploader("File upload", type=['jpg', 'jpeg', 'png'])
-
-        if uploaded_file:
-            if st.button("Extract Parameters") or 'current_params' not in st.session_state:
-                image = Image.open(uploaded_file)
-                params = extract_parameters(image)
-                if params:
-                    st.session_state.current_params = params
-
-            if 'current_params' in st.session_state:
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("**OD**")
-                    st.number_input("AL:", value=float(st.session_state.current_params['OD']['AL']), format="%.2f", key="od_al", on_change=update_params)
-                    st.number_input("ACD:", value=float(st.session_state.current_params['OD']['ACD']), format="%.2f", key="od_acd", on_change=update_params)
-                    st.number_input("K1:", value=float(st.session_state.current_params['OD']['K1']), format="%.2f", key="od_k1", on_change=update_params)
-                    st.number_input("K2:", value=float(st.session_state.current_params['OD']['K2']), format="%.2f", key="od_k2", on_change=update_params)
-                    st.write(f"K (SE): {calculate_se(st.session_state.current_params['OD']['K1'], st.session_state.current_params['OD']['K2']):.2f}")
-
-                with col2:
-                    st.markdown("**OS**")
-                    st.number_input("AL:", value=float(st.session_state.current_params['OS']['AL']), format="%.2f", key="os_al", on_change=update_params)
-                    st.number_input("ACD:", value=float(st.session_state.current_params['OS']['ACD']), format="%.2f", key="os_acd", on_change=update_params)
-                    st.number_input("K1:", value=float(st.session_state.current_params['OS']['K1']), format="%.2f", key="os_k1", on_change=update_params)
-                    st.number_input("K2:", value=float(st.session_state.current_params['OS']['K2']), format="%.2f", key="os_k2", on_change=update_params)
-                    st.write(f"K (SE): {calculate_se(st.session_state.current_params['OS']['K1'], st.session_state.current_params['OS']['K2']):.2f}")
-
-                if st.button("Analyze biometry"):
-                    interpreter = BiometryInterpreter()
-                    results = interpreter.analyze(st.session_state.current_params)
-                    st.write(results)
-
-if __name__ == "__main__":
-    main()
