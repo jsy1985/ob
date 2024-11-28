@@ -140,27 +140,17 @@ def update_params():
 def extract_parameters(image):
     with st.spinner('Extracting parameters from image...'):
         try:
-            st.write("Debug 1: Starting parameter extraction")
-            
             # API 키 확인
             if not API_KEY:
                 st.error("API key is not set")
                 return None
             
-            st.write("Debug 2: API Key exists:", API_KEY[:10] + "...")
-            
             client = OpenAI(api_key=API_KEY)
-            st.write("Debug 3: OpenAI client created")
-            
-            # 이미지 처리
             buffered = io.BytesIO()
             image.save(buffered, format="JPEG")
             image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
-            st.write("Debug 4: Image converted to base64")
             
-            st.write("Debug 5: About to make API request")
-            
-            # API 요청 데이터 확인
+            # API 요청
             messages = [{
                 "role": "user",
                 "content": [
@@ -190,7 +180,6 @@ Example output:
                     }
                 ]
             }]
-            st.write("Debug 6: Request message structure:", messages[0]["content"][0]["type"])
             
             response = client.chat.completions.create(
                 model="gpt-4-turbo",
@@ -198,11 +187,7 @@ Example output:
                 max_tokens=300
             )
             
-            st.write("Debug 7: API request completed")
-            st.write("Raw Response:", response)
-            
             raw_response = response.choices[0].message.content.strip()
-            st.write("Processed Response:", raw_response)
             
             # 응답 파싱 로직
             values = [float(x.strip()) for x in raw_response.split(',')]
@@ -232,8 +217,7 @@ Example output:
             return formatted_params
             
         except Exception as e:
-            st.error(f"Error extracting parameters: {str(e)}")
-            st.write("Error details:", e)
+            st.error("Error extracting parameters. Please try again.")
             return None
 
 def main():
